@@ -77,6 +77,8 @@ class TwitterPost(Loggable):
 class TwitterPostFactory(Loggable):
     def __init__(self, sentiment_mapper, area_mapper, sentiment_map: dict, area_map: dict):
         super().__init__(TwitterPostFactory)
+        self.text_filters = []
+        self.text_mappers = []
         self.sentiment_map = sentiment_map
         self.sentiment_mapper = sentiment_mapper
         self.area_map = area_map
@@ -84,19 +86,31 @@ class TwitterPostFactory(Loggable):
 
     def produce(self, data: dict):
         twitter_post = TwitterPost()
-        twitter_post.text = list(map(lambda x: x.lower(), data['doc']['text'].split(" ")))
+        twitter_post.text = data['doc']['text'].split(" ")
+        for func in self.text_mappers:
+            twitter_post.text = list(map(func, twitter_post.text))
+        for func in self.text_filters:
+            twitter_post.text = list(filter(func, twitter_post.text))
         twitter_post.coordinates = data['doc']['coordinates']['coordinates']
-        twitter_post.logger.debug(self.__init__.__name__ + ": Post parsed from data - {\"" + str(twitter_post.text)
-                                  + "\", " + str(twitter_post.coordinates) + "}")
+        twitter_post.logger.debug(self.__init__.__name__ + ": Post parsed from data - {" + str(twitter_post.text)
+                                  + ", " + str(twitter_post.coordinates) + "}")
         return twitter_post
+
+    def add_text_filter(self, text_filter):
+        self.text_filters.append(text_filter)
+
+    def add_text_mapper(self, text_mapper):
+        self.text_mappers.append(text_mapper)
 
     def map(self, tw_post: TwitterPost):
         return self.sentiment_mapper(tw_post, self.sentiment_map), self.area_mapper(tw_post, self.area_map)
 
 
 if __name__ == "__main__":
-    tw = TwitterData().load_from_file("tinyTwitter.json")
+    tw = TwitterData().load_from_file("smallTwitter.json")
     factory = TwitterPostFactory(None, None, {}, {})
+    factory.add_text_mapper(lambda x: x.lower())
+    factory.add_text_filter(lambda x: "https://t.co/" not in x and "http://t.co/" not in x)
 
     for item in tw.data:
         post = factory.produce(item)
