@@ -67,16 +67,33 @@ class TwitterData(Loggable):
 
 
 class TwitterPost(Loggable):
-    def __init__(self, data: dict):
+    def __init__(self):
         super().__init__(TwitterPost)
-        self.text = list(map(lambda x: x.lower(), data['doc']['text'].split(" ")))
-        self.coordinates = data['doc']['coordinates']['coordinates']
-        self.logger.debug(self.__init__.__name__ + ": Post parsed from data - {\"" + str(self.text) + "\", " + str(
-            self.coordinates) + "}")
+        self.text = None
+        self.coordinates = None
+        self.area = None
+
+
+class TwitterPostFactory(Loggable):
+    def __init__(self, sentiment_mapper, area_mapper, sentiment_map: dict, area_map: dict):
+        super().__init__(TwitterPostFactory)
+        self.sentiment_map = sentiment_map
+        self.sentiment_mapper = sentiment_mapper
+        self.area_map = area_map
+        self.area_mapper = area_mapper
+
+    def produce(self, data: dict):
+        twitter_post = TwitterPost()
+        twitter_post.text = list(map(lambda x: x.lower(), data['doc']['text'].split(" ")))
+        twitter_post.coordinates = data['doc']['coordinates']['coordinates']
+        twitter_post.logger.debug(self.__init__.__name__ + ": Post parsed from data - {\"" + str(twitter_post.text) + "\", " + str(
+            twitter_post.coordinates) + "}")
+        return twitter_post
 
 
 if __name__ == "__main__":
     tw = TwitterData().load_from_file("tinyTwitter.json")
+    factory = TwitterPostFactory(None, None, {}, {})
 
     for item in tw.data:
-        post = TwitterPost(item)
+        post = factory.produce(item)
