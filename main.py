@@ -86,9 +86,12 @@ class TwitterPostFactory(Loggable):
         twitter_post = TwitterPost()
         twitter_post.text = list(map(lambda x: x.lower(), data['doc']['text'].split(" ")))
         twitter_post.coordinates = data['doc']['coordinates']['coordinates']
-        twitter_post.logger.debug(self.__init__.__name__ + ": Post parsed from data - {\"" + str(twitter_post.text) + "\", " + str(
-            twitter_post.coordinates) + "}")
+        twitter_post.logger.debug(self.__init__.__name__ + ": Post parsed from data - {\"" + str(twitter_post.text)
+                                  + "\", " + str(twitter_post.coordinates) + "}")
         return twitter_post
+
+    def map(self, tw_post: TwitterPost):
+        return self.sentiment_mapper(tw_post, self.sentiment_map), self.area_mapper(tw_post, self.area_map)
 
 
 if __name__ == "__main__":
