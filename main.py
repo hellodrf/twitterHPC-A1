@@ -66,9 +66,17 @@ class TwitterData(Loggable):
         return self.len
 
 
+class TwitterPost(Loggable):
+    def __init__(self, data: dict):
+        super().__init__(TwitterPost)
+        self.text = list(map(lambda x: x.lower(), data['doc']['text'].split(" ")))
+        self.coordinates = data['doc']['coordinates']['coordinates']
+        self.logger.debug(self.__init__.__name__ + ": Post parsed from data - {\"" + str(self.text) + "\", " + str(
+            self.coordinates) + "}")
+
+
 if __name__ == "__main__":
     tw = TwitterData().load_from_file("tinyTwitter.json")
 
     for item in tw.data:
-        for i in item.items():
-            print(i)
+        post = TwitterPost(item)
