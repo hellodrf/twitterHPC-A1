@@ -71,6 +71,4 @@ if __name__ == "__main__":
 
     for item in tw.data:
         for i in item.items():
-            for ie in i:
-                print(ie)
-        print("============================================================")
+            print(i)
